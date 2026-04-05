@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  
+  --color-brand-primary: #001854;
+  --color-brand-secondary: #ffbf44;
+  --color-brand-white: #ffffff;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-brand-primary bg-white;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+}
+
+.glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20;
+}
+
+.btn-primary {
+  @apply bg-brand-secondary text-brand-primary px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-md;
+}
+
+.btn-secondary {
+  @apply bg-brand-primary text-white px-6 py-3 rounded-xl font-bold transition-all hover:bg-brand-primary/90 active:scale-95 shadow-md;
+}

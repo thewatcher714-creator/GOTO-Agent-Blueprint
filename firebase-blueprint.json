@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "page": {
+      "title": "Page",
+      "description": "Custom page content and SEO settings",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "content": { "type": "string", "description": "JSON string of page sections" },
+        "seo": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        },
+        "published": { "type": "boolean" }
+      },
+      "required": ["title", "slug"]
+    },
+    "service": {
+      "title": "Service",
+      "description": "Real estate media and consulting services",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "string" },
+        "icon": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "order": { "type": "number" }
+      },
+      "required": ["name"]
+    },
+    "testimonial": {
+      "title": "Testimonial",
+      "description": "Client feedback and social proof",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "role": { "type": "string" },
+        "text": { "type": "string" },
+        "photoUrl": { "type": "string" }
+      },
+      "required": ["author", "text"]
+    },
+    "booking": {
+      "title": "Booking",
+      "description": "Appointment for Go-To Ladder Audit",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "date", "time"]
+    },
+    "submission": {
+      "title": "Submission",
+      "description": "Contact form submissions",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message"]
+    },
+    "setting": {
+      "title": "Setting",
+      "description": "Global site settings and design customization",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string" },
+        "colors": {
+          "type": "object",
+          "properties": {
+            "primary": { "type": "string" },
+            "secondary": { "type": "string" },
+            "accent": { "type": "string" }
+          }
+        },
+        "socialLinks": {
+          "type": "object",
+          "properties": {
+            "instagram": { "type": "string" },
+            "facebook": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "pages": { "schema": "page", "description": "Dynamic pages" },
+    "services": { "schema": "service", "description": "Service offerings" },
+    "testimonials": { "schema": "testimonial", "description": "Client testimonials" },
+    "bookings": { "schema": "booking", "description": "Audit bookings" },
+    "submissions": { "schema": "submission", "description": "Contact form entries" },
+    "settings": { "schema": "setting", "description": "Global configuration" }
+  }
+}

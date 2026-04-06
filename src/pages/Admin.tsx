@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, User } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  MessageSquare, 
-  Settings, 
-  LogOut, 
-  Plus, 
-  Trash2, 
-  Check, 
-  X, 
-  ExternalLink, 
+import {
+  LayoutDashboard,
+  Calendar,
+  MessageSquare,
+  Settings,
+  LogOut,
+  Plus,
+  Trash2,
+  Check,
+  X,
   User as UserIcon,
   Image as ImageIcon,
   Download,
@@ -25,8 +24,6 @@ import {
   FileCode,
   Users,
   Search,
-  Filter,
-  MoreVertical,
   Youtube,
   Globe,
   Lock,
@@ -37,18 +34,17 @@ import {
   FileJson
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { 
-  MediaItem, 
-  DownloadItem, 
-  ReportTemplate, 
-  Report, 
-  EmailTemplate, 
-  EmailLog 
+import {
+  MediaItem,
+  DownloadItem,
+  ReportTemplate,
+  Report,
+  EmailTemplate
 } from '../types';
-import { 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from 'firebase/storage';
 import { storage } from '../firebase';
 
@@ -59,65 +55,119 @@ interface AdminProps {
 
 const Admin = ({ isAdmin, user }: AdminProps) => {
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'bookings' | 'submissions' | 'services' | 'settings' | 
+    'dashboard' | 'bookings' | 'submissions' | 'services' | 'settings' |
     'media' | 'downloads' | 'reportTemplates' | 'reports' | 'emailTemplates' | 'sendEmail'
   >('dashboard');
   const [bookings, setBookings] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
-  
-  // New CMS States
+
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [downloads, setDownloads] = useState<DownloadItem[]>([]);
   const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
-  
-  // Loading & UI States
+
   const [isUploading, setIsUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [editingItem, setEditingItem] = useState<any>(null);
   const [showEditor, setShowEditor] = useState(false);
 
+  const [emailForm, setEmailForm] = useState({
+    templateId: '',
+    reportId: '',
+    recipientName: '',
+    recipientEmail: '',
+    subject: '',
+    mergeFields: {} as Record<string, string>
+  });
+
   useEffect(() => {
     if (!isAdmin) return;
 
     const qBookings = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
-    const unsubBookings = onSnapshot(qBookings, (snap) => {
-      setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsubBookings = onSnapshot(
+      qBookings,
+      (snap) => {
+        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        console.error('Bookings listener error:', error);
+      }
+    );
 
     const qSubmissions = query(collection(db, 'submissions'), orderBy('createdAt', 'desc'));
-    const unsubSubmissions = onSnapshot(qSubmissions, (snap) => {
-      setSubmissions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsubSubmissions = onSnapshot(
+      qSubmissions,
+      (snap) => {
+        setSubmissions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        console.error('Submissions listener error:', error);
+      }
+    );
 
     const qServices = query(collection(db, 'services'), orderBy('order', 'asc'));
-    const unsubServices = onSnapshot(qServices, (snap) => {
-      setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsubServices = onSnapshot(
+      qServices,
+      (snap) => {
+        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        console.error('Services listener error:', error);
+      }
+    );
 
-    // New CMS Listeners
-    const unsubMedia = onSnapshot(query(collection(db, 'media'), orderBy('createdAt', 'desc')), (snap) => {
-      setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() } as MediaItem)));
-    });
+    const unsubMedia = onSnapshot(
+      query(collection(db, 'media'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() } as MediaItem)));
+      },
+      (error) => {
+        console.error('Media listener error:', error);
+      }
+    );
 
-    const unsubDownloads = onSnapshot(query(collection(db, 'downloads'), orderBy('createdAt', 'desc')), (snap) => {
-      setDownloads(snap.docs.map(d => ({ id: d.id, ...d.data() } as DownloadItem)));
-    });
+    const unsubDownloads = onSnapshot(
+      query(collection(db, 'downloads'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        setDownloads(snap.docs.map(d => ({ id: d.id, ...d.data() } as DownloadItem)));
+      },
+      (error) => {
+        console.error('Downloads listener error:', error);
+      }
+    );
 
-    const unsubReportTemplates = onSnapshot(query(collection(db, 'reportTemplates'), orderBy('createdAt', 'desc')), (snap) => {
-      setReportTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as ReportTemplate)));
-    });
+    const unsubReportTemplates = onSnapshot(
+      query(collection(db, 'reportTemplates'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        setReportTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as ReportTemplate)));
+      },
+      (error) => {
+        console.error('Report templates listener error:', error);
+      }
+    );
 
-    const unsubReports = onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
-      setReports(snap.docs.map(d => ({ id: d.id, ...d.data() } as Report)));
-    });
+    const unsubReports = onSnapshot(
+      query(collection(db, 'reports'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        setReports(snap.docs.map(d => ({ id: d.id, ...d.data() } as Report)));
+      },
+      (error) => {
+        console.error('Reports listener error:', error);
+      }
+    );
 
-    const unsubEmailTemplates = onSnapshot(query(collection(db, 'emailTemplates'), orderBy('createdAt', 'desc')), (snap) => {
-      setEmailTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as EmailTemplate)));
-    });
+    const unsubEmailTemplates = onSnapshot(
+      query(collection(db, 'emailTemplates'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        setEmailTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as EmailTemplate)));
+      },
+      (error) => {
+        console.error('Email templates listener error:', error);
+      }
+    );
 
     return () => {
       unsubBookings();
@@ -160,7 +210,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
       const url = await getDownloadURL(snapshot.ref);
       return url;
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error('Upload error:', error);
+      const err = error as any;
+      alert(`Upload failed: ${err?.code || ''} ${err?.message || err}`);
       return null;
     } finally {
       setIsUploading(false);
@@ -171,20 +223,22 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     e.preventDefault();
     if (!editingItem) return;
 
-    const col = activeTab === 'media' ? 'media' : 
-                activeTab === 'downloads' ? 'downloads' : 
-                activeTab === 'reportTemplates' ? 'reportTemplates' : 
-                activeTab === 'reports' ? 'reports' : 
-                activeTab === 'emailTemplates' ? 'emailTemplates' : 
-                activeTab === 'services' ? 'services' : '';
-    
+    const col =
+      activeTab === 'media' ? 'media' :
+      activeTab === 'downloads' ? 'downloads' :
+      activeTab === 'reportTemplates' ? 'reportTemplates' :
+      activeTab === 'reports' ? 'reports' :
+      activeTab === 'emailTemplates' ? 'emailTemplates' :
+      activeTab === 'services' ? 'services' : '';
+
     if (!col) return;
 
-    // If it's a report, we should perform placeholder replacement if it's new or requested
-    let finalHtml = activeTab === 'reports' ? (editingItem.htmlOutput || '') : (editingItem.htmlBody || '');
-    
+    let finalHtml =
+      activeTab === 'reports'
+        ? (editingItem.htmlOutput || '')
+        : (editingItem.htmlBody || '');
+
     if (activeTab === 'reports' && editingItem.mergeFields) {
-      // Basic placeholder replacement
       Object.entries(editingItem.mergeFields).forEach(([key, value]) => {
         const regex = new RegExp(`{{${key}}}`, 'g');
         finalHtml = finalHtml.replace(regex, value as string);
@@ -205,17 +259,19 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
       } else {
         await addDoc(collection(db, col), data);
       }
+
       setShowEditor(false);
       setEditingItem(null);
-    } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save item.");
+      alert('Saved successfully.');
+    } catch (error: any) {
+      console.error('Save error:', error);
+      alert(`Failed to save item: ${error?.code || ''} ${error?.message || error}`);
     }
   };
 
   const regenerateReport = () => {
     if (!editingItem || activeTab !== 'reports') return;
-    
+
     const template = reportTemplates.find(t => t.id === editingItem.templateId);
     if (!template) return;
 
@@ -226,22 +282,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
         finalHtml = finalHtml.replace(regex, value as string);
       });
     }
-    
+
     setEditingItem({ ...editingItem, htmlOutput: finalHtml });
   };
 
-  const [emailForm, setEmailForm] = useState({
-    templateId: '',
-    reportId: '',
-    recipientName: '',
-    recipientEmail: '',
-    subject: '',
-    mergeFields: {} as Record<string, string>
-  });
-
   const sendRealEmail = async () => {
     if (!emailForm.recipientEmail || !emailForm.templateId) {
-      alert("Please fill in recipient email and select a template.");
+      alert('Please fill in recipient email and select a template.');
       return;
     }
 
@@ -249,8 +296,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     if (!template) return;
 
     let finalHtml = template.htmlBody;
+    let finalSubject = emailForm.subject || template.subject;
     const reportLink = emailForm.reportId ? `${window.location.origin}/reports/${emailForm.reportId}` : '';
-    
+
     const allFields = {
       ...emailForm.mergeFields,
       CLIENT_NAME: emailForm.recipientName,
@@ -260,46 +308,45 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     Object.entries(allFields).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, 'g');
       finalHtml = finalHtml.replace(regex, value);
+      finalSubject = finalSubject.replace(regex, value);
     });
 
     try {
-      // Get the current user's ID token
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) {
-        throw new Error("User is not authenticated");
+        throw new Error('User is not authenticated');
       }
 
       const response = await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
           to: emailForm.recipientEmail,
-          subject: emailForm.subject || template.subject,
+          subject: finalSubject,
           html: finalHtml
         })
       });
 
       const result = await response.json();
       if (result.success) {
-        alert("Email sent successfully!");
-        // Log to Firestore
+        alert('Email sent successfully!');
         await addDoc(collection(db, 'emailLogs'), {
           templateId: emailForm.templateId,
           recipientEmail: emailForm.recipientEmail,
           recipientName: emailForm.recipientName,
-          subject: emailForm.subject || template.subject,
+          subject: finalSubject,
           sentAt: new Date(),
           status: 'success'
         });
       } else {
         throw new Error(result.error);
       }
-    } catch (error) {
-      console.error("Email error:", error);
-      alert("Failed to send email: " + error.message);
+    } catch (error: any) {
+      console.error('Email error:', error);
+      alert(`Failed to send email: ${error?.message || error}`);
     }
   };
 
@@ -337,7 +384,6 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
       <aside className="w-64 bg-brand-primary text-white flex flex-col">
         <div className="p-8">
           <div className="flex items-center space-x-2 mb-10">
@@ -346,7 +392,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
             </div>
             <span className="font-display font-bold text-lg tracking-tighter">ADMIN</span>
           </div>
-          
+
           <nav className="space-y-1">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
@@ -373,7 +419,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
             ))}
           </nav>
         </div>
-        
+
         <div className="mt-auto p-8">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-red-400 transition-all">
             <LogOut size={20} /> Logout
@@ -381,7 +427,6 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-grow p-12 overflow-y-auto">
         <header className="flex justify-between items-center mb-12">
           <div>
@@ -420,15 +465,15 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
               <div className="flex items-center gap-4 flex-grow max-w-2xl">
                 <div className="relative flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
-                    type="text" 
-                    placeholder="Search media..." 
+                  <input
+                    type="text"
+                    placeholder="Search media..."
                     className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-secondary outline-none"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <select 
+                <select
                   className="px-4 py-2 rounded-xl border border-gray-200 outline-none"
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
@@ -445,18 +490,18 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                 </select>
               </div>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => {
-                    setEditingItem({ type: 'image', category: 'misc', isActive: true, tags: [] });
+                    setEditingItem({ type: 'image', category: 'misc', isActive: true, tags: [], title: '', description: '', imageUrl: '', altText: '' });
                     setShowEditor(true);
                   }}
                   className="btn-primary flex items-center gap-2"
                 >
                   <Plus size={18} /> Add Image
                 </button>
-                <button 
+                <button
                   onClick={() => {
-                    setEditingItem({ type: 'youtube', category: 'misc', isActive: true, tags: [] });
+                    setEditingItem({ type: 'youtube', category: 'misc', isActive: true, tags: [], title: '', description: '', youtubeUrl: '', thumbnailUrl: '' });
                     setShowEditor(true);
                   }}
                   className="btn-secondary flex items-center gap-2"
@@ -468,16 +513,18 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {media
-                .filter(item => 
+                .filter(item =>
                   (filterCategory === 'all' || item.category === filterCategory) &&
-                  (item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                   item.tags.some(t => t.toLowerCase().includes(searchTerm.toLowerCase())))
+                  (
+                    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (item.tags || []).some(t => t.toLowerCase().includes(searchTerm.toLowerCase()))
+                  )
                 )
                 .map((item) => (
                   <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
                     <div className="aspect-video bg-gray-100 relative overflow-hidden">
                       {item.type === 'image' ? (
-                        <img src={item.imageUrl} alt={item.altText} className="w-full h-full object-cover" />
+                        <img src={item.imageUrl} alt={item.altText || item.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-brand-primary/5">
                           <Youtube size={48} className="text-red-600" />
@@ -487,7 +534,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button 
+                        <button
                           onClick={() => {
                             setEditingItem(item);
                             setShowEditor(true);
@@ -496,7 +543,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                         >
                           <Settings size={18} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => {
                             navigator.clipboard.writeText(item.imageUrl || item.youtubeUrl || '');
                             alert('URL copied to clipboard!');
@@ -505,7 +552,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                         >
                           <Copy size={18} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => deleteItem('media', item.id!)}
                           className="p-2 bg-white rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                         >
@@ -547,15 +594,15 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
               <div className="flex items-center gap-4 flex-grow max-w-2xl">
                 <div className="relative flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
-                    type="text" 
-                    placeholder="Search downloads..." 
+                  <input
+                    type="text"
+                    placeholder="Search downloads..."
                     className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-secondary outline-none"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <select 
+                <select
                   className="px-4 py-2 rounded-xl border border-gray-200 outline-none"
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
@@ -569,9 +616,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                   <option value="client-resources">Client Resources</option>
                 </select>
               </div>
-              <button 
+              <button
                 onClick={() => {
-                  setEditingItem({ category: 'downloads', visibility: 'public', isActive: true, sortOrder: 0 });
+                  setEditingItem({ category: 'downloads', visibility: 'public', isActive: true, sortOrder: 0, title: '', fileUrl: '', fileType: '' });
                   setShowEditor(true);
                 }}
                 className="btn-primary flex items-center gap-2"
@@ -592,9 +639,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {downloads
-                    .filter(item => 
+                    .filter(item =>
                       (filterCategory === 'all' || item.category === filterCategory) &&
-                      (item.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                      item.title.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                     .map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50 transition-colors">
@@ -616,15 +663,15 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-2">
-                            {item.visibility === 'public' ? <Globe size={14} className="text-green-500" /> : 
-                             item.visibility === 'private' ? <Lock size={14} className="text-red-500" /> : 
-                             <UserCheck size={14} className="text-brand-secondary" />}
+                            {item.visibility === 'public' ? <Globe size={14} className="text-green-500" /> :
+                              item.visibility === 'private' ? <Lock size={14} className="text-red-500" /> :
+                                <UserCheck size={14} className="text-brand-secondary" />}
                             <span className="text-sm capitalize">{item.visibility}</span>
                           </div>
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex gap-2">
-                            <button 
+                            <button
                               onClick={() => {
                                 setEditingItem(item);
                                 setShowEditor(true);
@@ -633,7 +680,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                             >
                               <Settings size={18} />
                             </button>
-                            <button 
+                            <button
                               onClick={() => {
                                 navigator.clipboard.writeText(item.fileUrl);
                                 alert('File URL copied!');
@@ -642,7 +689,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                             >
                               <Copy size={18} />
                             </button>
-                            <button 
+                            <button
                               onClick={() => deleteItem('downloads', item.id!)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
@@ -688,9 +735,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     </td>
                     <td className="px-8 py-6">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
-                        booking.status === 'confirmed' ? 'bg-green-100 text-green-600' : 
-                        booking.status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'
-                      }`}>
+                        booking.status === 'confirmed' ? 'bg-green-100 text-green-600' :
+                          booking.status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'
+                        }`}>
                         {booking.status}
                       </span>
                     </td>
@@ -728,43 +775,43 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
 
         {activeTab === 'services' && (
           <div className="space-y-8">
-             <div className="flex justify-end">
-                <button 
-                  onClick={() => {
-                    setEditingItem({ name: '', description: '', price: '', order: services.length + 1 });
-                    setShowEditor(true);
-                  }}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  <Plus size={20} /> Add New Service
-                </button>
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {services.map((service) => (
-                  <div key={service.id} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group">
-                    <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-xl font-bold">{service.name}</h4>
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button 
-                          onClick={() => {
-                            setEditingItem(service);
-                            setShowEditor(true);
-                          }}
-                          className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"
-                        >
-                          <Settings size={18} />
-                        </button>
-                        <button onClick={() => deleteItem('services', service.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm mb-4">{service.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-brand-secondary">{service.price}</span>
-                      <span className="text-xs text-gray-400">Order: {service.order}</span>
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setEditingItem({ name: '', description: '', price: '', order: services.length + 1 });
+                  setShowEditor(true);
+                }}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Plus size={20} /> Add New Service
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {services.map((service) => (
+                <div key={service.id} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group">
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className="text-xl font-bold">{service.name}</h4>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                      <button
+                        onClick={() => {
+                          setEditingItem(service);
+                          setShowEditor(true);
+                        }}
+                        className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"
+                      >
+                        <Settings size={18} />
+                      </button>
+                      <button onClick={() => deleteItem('services', service.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
                     </div>
                   </div>
-                ))}
-             </div>
+                  <p className="text-gray-500 text-sm mb-4">{service.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-brand-secondary">{service.price}</span>
+                    <span className="text-xs text-gray-400">Order: {service.order}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -772,7 +819,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
           <div className="space-y-8">
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Report Templates</h3>
-              <button 
+              <button
                 onClick={() => {
                   setEditingItem({ name: '', status: 'draft', htmlBody: '<h1>New Report</h1>', category: 'audit' });
                   setShowEditor(true);
@@ -792,12 +839,12 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     </div>
                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${
                       template.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
-                    }`}>
+                      }`}>
                       {template.status}
                     </span>
                   </div>
                   <div className="flex gap-2 mt-6">
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingItem(template);
                         setShowEditor(true);
@@ -806,7 +853,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     >
                       <Settings size={16} /> Edit
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         const { id, ...rest } = template;
                         addDoc(collection(db, 'reportTemplates'), { ...rest, name: `${template.name} (Copy)`, createdAt: new Date(), updatedAt: new Date() });
@@ -815,7 +862,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     >
                       <Copy size={18} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => deleteItem('reportTemplates', template.id!)}
                       className="p-2 text-red-400 hover:bg-red-50 rounded-xl"
                     >
@@ -833,17 +880,17 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Client Reports</h3>
               <div className="flex gap-2">
-                <select 
+                <select
                   className="px-4 py-2 rounded-xl border border-gray-200 outline-none"
                   onChange={(e) => {
                     const template = reportTemplates.find(t => t.id === e.target.value);
                     if (template) {
-                      setEditingItem({ 
+                      setEditingItem({
                         title: `Report for ${new Date().toLocaleDateString()}`,
-                        templateId: template.id, 
-                        status: 'draft', 
+                        templateId: template.id,
+                        status: 'draft',
                         htmlOutput: template.htmlBody,
-                        mergeFields: {} 
+                        mergeFields: {}
                       });
                       setShowEditor(true);
                     }
@@ -877,7 +924,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       <td className="px-8 py-6">
                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${
                           report.status === 'final' ? 'bg-brand-secondary text-brand-primary' : 'bg-gray-100 text-gray-500'
-                        }`}>
+                          }`}>
                           {report.status}
                         </span>
                       </td>
@@ -886,7 +933,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex gap-2">
-                          <button 
+                          <button
                             onClick={() => {
                               setEditingItem(report);
                               setShowEditor(true);
@@ -895,7 +942,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                           >
                             <Settings size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
                               const url = `${window.location.origin}/reports/${report.id}`;
                               navigator.clipboard.writeText(url);
@@ -905,15 +952,15 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                           >
                             <Copy size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
-                              const win = window.open(`/reports/${report.id}`, '_blank');
+                              window.open(`/reports/${report.id}`, '_blank');
                             }}
                             className="p-2 text-brand-primary hover:bg-brand-secondary rounded-lg"
                           >
                             <Eye size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => deleteItem('reports', report.id!)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                           >
@@ -933,7 +980,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
           <div className="space-y-8">
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Email Templates</h3>
-              <button 
+              <button
                 onClick={() => {
                   setEditingItem({ name: '', status: 'draft', htmlBody: '<p>Hello {{CLIENT_FIRST_NAME}},</p>', subject: 'Update' });
                   setShowEditor(true);
@@ -953,13 +1000,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     </div>
                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${
                       template.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
-                    }`}>
+                      }`}>
                       {template.status}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 line-clamp-2 mb-6">{template.subject}</p>
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingItem(template);
                         setShowEditor(true);
@@ -968,7 +1015,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     >
                       <Settings size={16} /> Edit
                     </button>
-                    <button 
+                    <button
                       onClick={() => deleteItem('emailTemplates', template.id!)}
                       className="p-2 text-red-400 hover:bg-red-50 rounded-xl"
                     >
@@ -988,7 +1035,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Template</label>
-                  <select 
+                  <select
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"
                     value={emailForm.templateId}
                     onChange={(e) => {
@@ -1004,12 +1051,17 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Report Link (Optional)</label>
-                  <select 
+                  <select
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"
                     value={emailForm.reportId}
                     onChange={(e) => {
                       const r = reports.find(x => x.id === e.target.value);
-                      setEmailForm({ ...emailForm, reportId: e.target.value, recipientName: r?.clientName || emailForm.recipientName, recipientEmail: r?.clientEmail || emailForm.recipientEmail });
+                      setEmailForm({
+                        ...emailForm,
+                        reportId: e.target.value,
+                        recipientName: r?.clientName || emailForm.recipientName,
+                        recipientEmail: r?.clientEmail || emailForm.recipientEmail
+                      });
                     }}
                   >
                     <option value="">Select a report...</option>
@@ -1022,20 +1074,20 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Recipient Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none" 
-                    placeholder="John Doe" 
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"
+                    placeholder="John Doe"
                     value={emailForm.recipientName}
                     onChange={(e) => setEmailForm({ ...emailForm, recipientName: e.target.value })}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Recipient Email</label>
-                  <input 
-                    type="email" 
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none" 
-                    placeholder="john@example.com" 
+                  <input
+                    type="email"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"
+                    placeholder="john@example.com"
                     value={emailForm.recipientEmail}
                     onChange={(e) => setEmailForm({ ...emailForm, recipientEmail: e.target.value })}
                   />
@@ -1043,10 +1095,10 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Subject Line</label>
-                <input 
-                  type="text" 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none" 
-                  placeholder="Your Audit Report is Ready" 
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"
+                  placeholder="Your Audit Report is Ready"
                   value={emailForm.subject}
                   onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
                 />
@@ -1059,13 +1111,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                   {['CLIENT_FIRST_NAME', 'YOUR_NAME'].map(field => (
                     <div key={field}>
                       <label className="block text-[10px] font-bold text-gray-400 mb-1 uppercase">{field}</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none" 
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none"
                         value={emailForm.mergeFields[field] || ''}
-                        onChange={(e) => setEmailForm({ 
-                          ...emailForm, 
-                          mergeFields: { ...emailForm.mergeFields, [field]: e.target.value } 
+                        onChange={(e) => setEmailForm({
+                          ...emailForm,
+                          mergeFields: { ...emailForm.mergeFields, [field]: e.target.value }
                         })}
                       />
                     </div>
@@ -1073,7 +1125,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                 </div>
               </div>
               <div className="flex gap-4">
-                <button 
+                <button
                   onClick={sendRealEmail}
                   className="flex-grow btn-primary py-4 flex items-center justify-center gap-2"
                 >
@@ -1111,7 +1163,6 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
         )}
       </main>
 
-      {/* Editor Modal */}
       {showEditor && editingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
@@ -1123,17 +1174,16 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleSave} className="flex-grow overflow-y-auto p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Common Fields */}
                 <div className="space-y-6">
                   {activeTab === 'media' && (
                     <>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Title</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-brand-secondary"
                           value={editingItem.title || ''}
@@ -1142,7 +1192,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Category</label>
-                        <select 
+                        <select
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.category || 'misc'}
                           onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
@@ -1162,8 +1212,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                           <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Image File</label>
                           <div className="flex items-center gap-4">
                             {editingItem.imageUrl && <img src={editingItem.imageUrl} className="w-16 h-16 rounded object-cover" />}
-                            <input 
-                              type="file" 
+                            <input
+                              type="file"
                               accept="image/*"
                               className="text-sm"
                               onChange={async (e) => {
@@ -1179,8 +1229,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       ) : (
                         <div>
                           <label className="block text-xs font-bold text-gray-400 uppercase mb-2">YouTube URL</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                             placeholder="https://youtube.com/watch?v=..."
                             value={editingItem.youtubeUrl || ''}
@@ -1195,8 +1245,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     <>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Title</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.title || ''}
@@ -1205,8 +1255,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">File</label>
-                        <input 
-                          type="file" 
+                        <input
+                          type="file"
                           className="text-sm"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
@@ -1219,7 +1269,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Visibility</label>
-                        <select 
+                        <select
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.visibility || 'public'}
                           onChange={(e) => setEditingItem({ ...editingItem, visibility: e.target.value })}
@@ -1236,8 +1286,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     <>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.name || ''}
@@ -1247,8 +1297,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       {activeTab === 'emailTemplates' && (
                         <div>
                           <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Subject Line</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                             value={editingItem.subject || ''}
@@ -1258,7 +1308,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       )}
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Status</label>
-                        <select 
+                        <select
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.status || 'draft'}
                           onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value })}
@@ -1270,12 +1320,12 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     </>
                   )}
 
-                   {activeTab === 'reports' && (
+                  {activeTab === 'reports' && (
                     <>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Report Title</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.title || ''}
@@ -1285,8 +1335,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Client Name</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                             value={editingItem.clientName || ''}
                             onChange={(e) => setEditingItem({ ...editingItem, clientName: e.target.value })}
@@ -1294,8 +1344,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Client Email</label>
-                          <input 
-                            type="email" 
+                          <input
+                            type="email"
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                             value={editingItem.clientEmail || ''}
                             onChange={(e) => setEditingItem({ ...editingItem, clientEmail: e.target.value })}
@@ -1304,7 +1354,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Status</label>
-                        <select 
+                        <select
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.status || 'draft'}
                           onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value })}
@@ -1318,7 +1368,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                           <h4 className="font-bold text-sm flex items-center gap-2">
                             <FileJson size={16} /> Merge Fields
                           </h4>
-                          <button 
+                          <button
                             type="button"
                             onClick={regenerateReport}
                             className="text-[10px] font-bold uppercase bg-brand-secondary px-2 py-1 rounded flex items-center gap-1"
@@ -1330,13 +1380,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                           {['CLIENT_NAME', 'CLIENT_FIRST_NAME', 'CITY', 'MARKET_RANK', 'AUDIT_DATE'].map(field => (
                             <div key={field}>
                               <label className="block text-[10px] font-bold text-gray-400 mb-1 uppercase">{field}</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none"
                                 value={editingItem.mergeFields?.[field] || ''}
-                                onChange={(e) => setEditingItem({ 
-                                  ...editingItem, 
-                                  mergeFields: { ...editingItem.mergeFields, [field]: e.target.value } 
+                                onChange={(e) => setEditingItem({
+                                  ...editingItem,
+                                  mergeFields: { ...editingItem.mergeFields, [field]: e.target.value }
                                 })}
                               />
                             </div>
@@ -1350,8 +1400,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                     <>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Service Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.name || ''}
@@ -1360,8 +1410,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Price</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none"
                           value={editingItem.price || ''}
                           onChange={(e) => setEditingItem({ ...editingItem, price: e.target.value })}
@@ -1369,7 +1419,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Description</label>
-                        <textarea 
+                        <textarea
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none h-24"
                           value={editingItem.description || ''}
                           onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
@@ -1379,14 +1429,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                   )}
                 </div>
 
-                {/* Code Editor & Preview Area */}
                 <div className="space-y-6">
                   {(activeTab === 'reportTemplates' || activeTab === 'emailTemplates' || activeTab === 'reports') && (
                     <div className="h-full flex flex-col">
                       <div className="flex justify-between items-center mb-2">
                         <label className="block text-xs font-bold text-gray-400 uppercase">HTML Content</label>
                         <div className="flex gap-2">
-                           <button 
+                          <button
                             type="button"
                             onClick={() => {
                               const input = document.createElement('input');
@@ -1404,12 +1453,12 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                               input.click();
                             }}
                             className="text-[10px] font-bold uppercase tracking-widest text-brand-primary bg-brand-secondary px-2 py-1 rounded"
-                           >
-                             Import HTML
-                           </button>
+                          >
+                            Import HTML
+                          </button>
                         </div>
                       </div>
-                      <textarea 
+                      <textarea
                         className="flex-grow w-full p-4 font-mono text-sm bg-gray-900 text-green-400 rounded-2xl outline-none min-h-[300px]"
                         value={activeTab === 'reports' ? (editingItem.htmlOutput || '') : (editingItem.htmlBody || '')}
                         onChange={(e) => setEditingItem({ ...editingItem, [activeTab === 'reports' ? 'htmlOutput' : 'htmlBody']: e.target.value })}
@@ -1417,8 +1466,8 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       <div className="mt-4">
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Preview</label>
                         <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white h-[200px]">
-                          <iframe 
-                            srcDoc={activeTab === 'reports' ? editingItem.htmlOutput : editingItem.htmlBody} 
+                          <iframe
+                            srcDoc={activeTab === 'reports' ? editingItem.htmlOutput : editingItem.htmlBody}
                             className="w-full h-full border-none"
                             title="Preview"
                           />
@@ -1426,11 +1475,11 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                       </div>
                     </div>
                   )}
-                  
+
                   {activeTab === 'media' && (
                     <div>
                       <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Description</label>
-                      <textarea 
+                      <textarea
                         className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none h-32"
                         value={editingItem.description || ''}
                         onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
@@ -1441,14 +1490,14 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
               </div>
 
               <div className="mt-12 flex justify-end gap-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowEditor(false)}
                   className="px-8 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isUploading}
                   className="btn-primary px-12 py-3 flex items-center gap-2"
@@ -1466,7 +1515,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
 };
 
 const Shield = ({ size }: { size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
 );
 
 export default Admin;

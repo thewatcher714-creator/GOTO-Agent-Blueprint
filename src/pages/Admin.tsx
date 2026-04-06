@@ -263,11 +263,17 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     });
 
     try {
+      // Get the current user's ID token
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        throw new Error("User is not authenticated");
+      }
+
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-admin-secret': import.meta.env.VITE_ADMIN_API_SECRET || ''
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
           to: emailForm.recipientEmail,

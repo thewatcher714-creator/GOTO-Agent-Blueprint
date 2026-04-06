@@ -223,16 +223,22 @@ export default function App() {
     testConnection();
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Check if admin
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        const userData = userDoc.data();
-        setIsAdmin(userData?.role === 'admin' || currentUser.email === 'thewatcher714@gmail.com');
-      } else {
+      try {
+        setUser(currentUser);
+        if (currentUser) {
+          // Check if admin
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          const userData = userDoc.data();
+          setIsAdmin(userData?.role === 'admin' || currentUser.email === 'thewatcher714@gmail.com');
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Auth state error:", error);
         setIsAdmin(false);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();

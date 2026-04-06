@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from './firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocFromServer } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, Instagram, Facebook, ArrowRight, CheckCircle2, Shield, Camera, UserCircle, BarChart3, Mail, Phone, MapPin } from 'lucide-react';
 
@@ -37,7 +37,7 @@ const Navbar = () => {
             <div className="w-10 h-10 bg-brand-secondary rounded-lg flex items-center justify-center">
               <span className="text-brand-primary font-bold text-xl">A</span>
             </div>
-            <span className="font-display text-xl font-bold tracking-tighter">AGENT BLUEPRINT</span>
+            <span className="font-display text-xl font-bold tracking-tighter">THE GO-TO AGENT BLUEPRINT</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -112,7 +112,7 @@ const Footer = () => {
               <div className="w-10 h-10 bg-brand-secondary rounded-lg flex items-center justify-center">
                 <span className="text-brand-primary font-bold text-xl">A</span>
               </div>
-              <span className="font-display text-2xl font-bold tracking-tighter">AGENT BLUEPRINT</span>
+              <span className="font-display text-2xl font-bold tracking-tighter">THE GO-TO AGENT BLUEPRINT</span>
             </Link>
             <p className="text-gray-400 max-w-md mb-8">
               Helping real estate agents become the "Go-To" authority in their market through strategic positioning, high-end media, and the Go-To Ladder framework.
@@ -157,7 +157,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>© 2026 Agent Blueprint. All rights reserved.</p>
+          <p>© 2026 The Go-To Agent Blueprint. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
@@ -174,6 +174,18 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Test Firestore connection
+    const testConnection = async () => {
+      try {
+        await getDocFromServer(doc(db, 'test', 'connection'));
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('the client is offline')) {
+          console.error("Please check your Firebase configuration. The client is offline.");
+        }
+      }
+    };
+    testConnection();
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {

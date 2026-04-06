@@ -261,7 +261,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
             <div className="space-y-8">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Site Name</label>
-                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-200" defaultValue="Agent Blueprint" />
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-200" defaultValue="The Go-To Agent Blueprint" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Primary Color</label>

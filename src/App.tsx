@@ -15,6 +15,7 @@ import Booking from './pages/Booking';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import Resources from './pages/Resources';
+import ViewReport from './pages/ViewReport';
 
 const Navbar = ({ isAdmin, user }: { isAdmin: boolean; user: User | null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -257,6 +258,7 @@ export default function App() {
             <Route path="/booking" element={<Booking />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/reports/:id" element={<ViewReport />} />
             <Route path="/admin/*" element={<Admin isAdmin={isAdmin} user={user} />} />
           </Routes>
         </main>

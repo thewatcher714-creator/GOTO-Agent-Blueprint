@@ -1,108 +1,118 @@
 {
   "entities": {
-    "page": {
-      "title": "Page",
-      "description": "Custom page content and SEO settings",
+    "media": {
+      "title": "Media Item",
+      "description": "Site media assets including images and YouTube entries",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
-        "slug": { "type": "string" },
-        "content": { "type": "string", "description": "JSON string of page sections" },
-        "seo": {
-          "type": "object",
-          "properties": {
-            "title": { "type": "string" },
-            "description": { "type": "string" }
-          }
-        },
-        "published": { "type": "boolean" }
-      },
-      "required": ["title", "slug"]
-    },
-    "service": {
-      "title": "Service",
-      "description": "Real estate media and consulting services",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "youtube"] },
+        "category": { "type": "string" },
         "description": { "type": "string" },
-        "price": { "type": "string" },
-        "icon": { "type": "string" },
-        "features": { "type": "array", "items": { "type": "string" } },
-        "order": { "type": "number" }
+        "altText": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "imageUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "youtubeUrl": { "type": "string" },
+        "embedUrl": { "type": "string" },
+        "pageTarget": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name"]
+      "required": ["title", "type", "category", "isActive"]
     },
-    "testimonial": {
-      "title": "Testimonial",
-      "description": "Client feedback and social proof",
+    "downloads": {
+      "title": "Download Item",
+      "description": "Client downloadable resources",
       "type": "object",
       "properties": {
-        "author": { "type": "string" },
-        "role": { "type": "string" },
-        "text": { "type": "string" },
-        "photoUrl": { "type": "string" }
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "fileType": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "buttonLabel": { "type": "string" },
+        "sortOrder": { "type": "integer" },
+        "visibility": { "type": "string", "enum": ["public", "private", "gated"] },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["author", "text"]
+      "required": ["title", "category", "fileUrl", "visibility", "isActive"]
     },
-    "booking": {
-      "title": "Booking",
-      "description": "Appointment for Go-To Ladder Audit",
+    "reportTemplates": {
+      "title": "Report Template",
+      "description": "Reusable HTML report layouts",
       "type": "object",
       "properties": {
         "name": { "type": "string" },
-        "email": { "type": "string" },
-        "serviceId": { "type": "string" },
-        "date": { "type": "string" },
-        "time": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
-        "notes": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "category": { "type": "string" },
+        "subject": { "type": "string" },
+        "htmlBody": { "type": "string" },
+        "cssBlock": { "type": "string" },
+        "previewImageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "active"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "email", "date", "time"]
+      "required": ["name", "category", "htmlBody", "status"]
     },
-    "submission": {
-      "title": "Submission",
-      "description": "Contact form submissions",
+    "reports": {
+      "title": "Report",
+      "description": "Client-specific reports generated from templates",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "templateId": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "final"] },
+        "htmlOutput": { "type": "string" },
+        "mergeFields": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "clientName", "clientEmail", "templateId", "status", "htmlOutput"]
+    },
+    "emailTemplates": {
+      "title": "Email Template",
+      "description": "Reusable HTML email layouts",
       "type": "object",
       "properties": {
         "name": { "type": "string" },
-        "email": { "type": "string" },
-        "message": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "category": { "type": "string" },
+        "subject": { "type": "string" },
+        "htmlBody": { "type": "string" },
+        "plainText": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "active"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "email", "message"]
-    },
-    "setting": {
-      "title": "Setting",
-      "description": "Global site settings and design customization",
-      "type": "object",
-      "properties": {
-        "siteName": { "type": "string" },
-        "colors": {
-          "type": "object",
-          "properties": {
-            "primary": { "type": "string" },
-            "secondary": { "type": "string" },
-            "accent": { "type": "string" }
-          }
-        },
-        "socialLinks": {
-          "type": "object",
-          "properties": {
-            "instagram": { "type": "string" },
-            "facebook": { "type": "string" }
-          }
-        }
-      }
+      "required": ["name", "category", "subject", "htmlBody", "status"]
     }
   },
   "firestore": {
-    "pages": { "schema": "page", "description": "Dynamic pages" },
-    "services": { "schema": "service", "description": "Service offerings" },
-    "testimonials": { "schema": "testimonial", "description": "Client testimonials" },
-    "bookings": { "schema": "booking", "description": "Audit bookings" },
-    "submissions": { "schema": "submission", "description": "Contact form entries" },
-    "settings": { "schema": "setting", "description": "Global configuration" }
+    "/media": {
+      "schema": "media",
+      "description": "Site media assets"
+    },
+    "/downloads": {
+      "schema": "downloads",
+      "description": "Client downloadable files"
+    },
+    "/reportTemplates": {
+      "schema": "reportTemplates",
+      "description": "Reusable report templates"
+    },
+    "/reports": {
+      "schema": "reports",
+      "description": "Generated client reports"
+    },
+    "/emailTemplates": {
+      "schema": "emailTemplates",
+      "description": "Reusable email templates"
+    }
   }
 }

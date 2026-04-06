@@ -60,3 +60,86 @@ export interface Settings {
     facebook: string;
   };
 }
+
+export interface MediaItem {
+  id?: string;
+  title: string;
+  type: 'image' | 'youtube';
+  category: 'branding' | 'homepage' | 'lead-magnet' | 'book' | 'testimonials' | 'backgrounds' | 'email-assets' | 'misc';
+  description: string;
+  altText: string;
+  tags: string[];
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  youtubeUrl?: string;
+  embedUrl?: string;
+  pageTarget?: string;
+  isActive: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface DownloadItem {
+  id?: string;
+  title: string;
+  description: string;
+  category: 'audit-reports' | 'guides' | 'worksheets' | 'templates' | 'downloads' | 'client-resources';
+  fileType: string;
+  fileUrl: string;
+  thumbnailUrl?: string;
+  buttonLabel: string;
+  sortOrder: number;
+  visibility: 'public' | 'private' | 'gated';
+  isActive: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface ReportTemplate {
+  id?: string;
+  name: string;
+  category: string;
+  subject?: string;
+  htmlBody: string;
+  cssBlock?: string;
+  previewImageUrl?: string;
+  status: 'draft' | 'active';
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface Report {
+  id?: string;
+  title: string;
+  clientName: string;
+  clientEmail: string;
+  templateId: string;
+  status: 'draft' | 'final';
+  htmlOutput: string;
+  mergeFields: Record<string, string>;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface EmailTemplate {
+  id?: string;
+  name: string;
+  category: string;
+  subject: string;
+  htmlBody: string;
+  plainText?: string;
+  status: 'draft' | 'active';
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface EmailLog {
+  id?: string;
+  templateId: string;
+  recipientName: string;
+  recipientEmail: string;
+  subject: string;
+  sentAt: any;
+  status: 'success' | 'failed';
+  error?: string;
+}

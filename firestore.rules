@@ -23,6 +23,21 @@ service cloud.firestore {
     // Collection: settings
     // Fields: siteName, colors, socialLinks
     //
+    // Collection: media
+    // Fields: title, type, category, description, altText, tags, imageUrl, thumbnailUrl, youtubeUrl, embedUrl, pageTarget, isActive, createdAt, updatedAt
+    //
+    // Collection: downloads
+    // Fields: title, description, category, fileType, fileUrl, thumbnailUrl, buttonLabel, sortOrder, visibility, isActive, createdAt, updatedAt
+    //
+    // Collection: reportTemplates
+    // Fields: name, category, subject, htmlBody, cssBlock, previewImageUrl, status, createdAt, updatedAt
+    //
+    // Collection: reports
+    // Fields: title, clientName, clientEmail, templateId, status, htmlOutput, mergeFields, createdAt, updatedAt
+    //
+    // Collection: emailTemplates
+    // Fields: name, category, subject, htmlBody, plainText, status, createdAt, updatedAt
+    //
     // ===============================================================
 
     // Helper Functions
@@ -77,6 +92,29 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    match /media/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /downloads/{downloadId} {
+      allow read: if (resource.data.visibility == 'public' && resource.data.isActive == true) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /reportTemplates/{templateId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow read: if (resource.data.status == 'final') || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /emailTemplates/{templateId} {
+      allow read, write: if isAdmin();
     }
   }
 }

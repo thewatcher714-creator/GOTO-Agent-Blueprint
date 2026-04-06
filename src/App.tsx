@@ -16,7 +16,7 @@ import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import Resources from './pages/Resources';
 
-const Navbar = () => {
+const Navbar = ({ isAdmin, user }: { isAdmin: boolean; user: User | null }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -28,6 +28,10 @@ const Navbar = () => {
     { name: 'Booking', path: '/booking' },
     { name: 'Contact', path: '/contact' },
   ];
+
+  if (isAdmin) {
+    navLinks.push({ name: 'Admin', path: '/admin' });
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -53,6 +57,18 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            {user ? (
+              <button 
+                onClick={() => auth.signOut()}
+                className="text-sm font-medium text-brand-primary hover:text-red-500 transition-colors"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link to="/admin" className="text-sm font-medium text-brand-primary hover:text-brand-secondary transition-colors">
+                Login
+              </Link>
+            )}
             <Link to="/booking" className="btn-primary py-2 px-5 text-sm">
               Start Audit
             </Link>
@@ -87,6 +103,25 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              {user ? (
+                <button 
+                  onClick={() => {
+                    auth.signOut();
+                    setIsOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-4 text-base font-medium text-brand-primary hover:bg-gray-50"
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link 
+                  to="/admin" 
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-4 text-base font-medium text-brand-primary hover:bg-gray-50"
+                >
+                  Login
+                </Link>
+              )}
               <Link
                 to="/booking"
                 onClick={() => setIsOpen(false)}
@@ -213,7 +248,7 @@ export default function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <Navbar isAdmin={isAdmin} user={user} />
         <main className="flex-grow pt-20">
           <Routes>
             <Route path="/" element={<Home />} />

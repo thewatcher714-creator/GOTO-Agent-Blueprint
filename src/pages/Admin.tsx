@@ -124,33 +124,30 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
   useEffect(() => {
     if (!isAdmin) return;
 
-    const qBookings = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
     const unsubBookings = onSnapshot(
-      qBookings,
+      collection(db, 'bookings'),
       (snap) => {
-        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Bookings listener error:', error);
       }
     );
 
-    const qSubmissions = query(collection(db, 'submissions'), orderBy('createdAt', 'desc'));
     const unsubSubmissions = onSnapshot(
-      qSubmissions,
+      collection(db, 'submissions'),
       (snap) => {
-        setSubmissions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setSubmissions(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Submissions listener error:', error);
       }
     );
 
-    const qServices = query(collection(db, 'services'), orderBy('order', 'asc'));
     const unsubServices = onSnapshot(
-      qServices,
+      collection(db, 'services'),
       (snap) => {
-        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.order || 0) - (b.order || 0)));
       },
       (error) => {
         console.error('Services listener error:', error);
@@ -158,9 +155,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     );
 
     const unsubMedia = onSnapshot(
-      query(collection(db, 'media'), orderBy('createdAt', 'desc')),
+      collection(db, 'media'),
       (snap) => {
-        setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() } as MediaItem)));
+        setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() } as MediaItem)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Media listener error:', error);
@@ -168,9 +165,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     );
 
     const unsubDownloads = onSnapshot(
-      query(collection(db, 'downloads'), orderBy('createdAt', 'desc')),
+      collection(db, 'downloads'),
       (snap) => {
-        setDownloads(snap.docs.map(d => ({ id: d.id, ...d.data() } as DownloadItem)));
+        setDownloads(snap.docs.map(d => ({ id: d.id, ...d.data() } as DownloadItem)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Downloads listener error:', error);
@@ -178,9 +175,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     );
 
     const unsubReportTemplates = onSnapshot(
-      query(collection(db, 'reportTemplates'), orderBy('createdAt', 'desc')),
+      collection(db, 'reportTemplates'),
       (snap) => {
-        setReportTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as ReportTemplate)));
+        setReportTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as ReportTemplate)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Report templates listener error:', error);
@@ -188,9 +185,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     );
 
     const unsubReports = onSnapshot(
-      query(collection(db, 'reports'), orderBy('createdAt', 'desc')),
+      collection(db, 'reports'),
       (snap) => {
-        setReports(snap.docs.map(d => ({ id: d.id, ...d.data() } as Report)));
+        setReports(snap.docs.map(d => ({ id: d.id, ...d.data() } as Report)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Reports listener error:', error);
@@ -198,9 +195,9 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     );
 
     const unsubEmailTemplates = onSnapshot(
-      query(collection(db, 'emailTemplates'), orderBy('createdAt', 'desc')),
+      collection(db, 'emailTemplates'),
       (snap) => {
-        setEmailTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as EmailTemplate)));
+        setEmailTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as EmailTemplate)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Email templates listener error:', error);
@@ -558,13 +555,14 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {media
-                .filter(item =>
-                  (filterCategory === 'all' || item.category === filterCategory) &&
-                  (
-                    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (item.tags || []).some(t => t.toLowerCase().includes(searchTerm.toLowerCase()))
-                  )
-                )
+                .filter(item => {
+                  const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+                  const search = searchTerm.toLowerCase();
+                  const matchesSearch = 
+                    (item.title || '').toLowerCase().includes(search) ||
+                    (item.tags || []).some(t => (t || '').toLowerCase().includes(search));
+                  return matchesCategory && matchesSearch;
+                })
                 .map((item) => (
                   <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
                     <div className="aspect-video bg-gray-100 relative overflow-hidden">
@@ -684,10 +682,11 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {downloads
-                    .filter(item =>
-                      (filterCategory === 'all' || item.category === filterCategory) &&
-                      item.title.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
+                    .filter(item => {
+                      const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+                      const matchesSearch = (item.title || '').toLowerCase().includes(searchTerm.toLowerCase());
+                      return matchesCategory && matchesSearch;
+                    })
                     .map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-8 py-6">

@@ -127,7 +127,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     const unsubBookings = onSnapshot(
       collection(db, 'bookings'),
       (snap) => {
-        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Bookings listener error:', error);
@@ -137,7 +137,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     const unsubSubmissions = onSnapshot(
       collection(db, 'submissions'),
       (snap) => {
-        setSubmissions(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+        setSubmissions(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       },
       (error) => {
         console.error('Submissions listener error:', error);
@@ -147,7 +147,7 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     const unsubServices = onSnapshot(
       collection(db, 'services'),
       (snap) => {
-        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.order || 0) - (b.order || 0)));
+        setServices(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)).sort((a,b) => (a.order || 0) - (b.order || 0)));
       },
       (error) => {
         console.error('Services listener error:', error);
@@ -396,8 +396,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     return (
       <div className="min-h-[70vh] flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full p-12 bg-white rounded-3xl shadow-xl text-center">
-          <div className="w-20 h-20 bg-brand-secondary/10 rounded-2xl flex items-center justify-center mx-auto mb-8 text-brand-secondary">
-            <Shield size={40} />
+          <div className="w-20 h-20 bg-brand-secondary/10 rounded-2xl flex items-center justify-center mx-auto mb-8 overflow-hidden">
+            <img 
+              src="https://firebasestorage.googleapis.com/v0/b/back-up-dev.firebasestorage.app/o/media%2F1776555021724_Go-To_Round.png?alt=media&token=0be27d5d-61f3-4d5a-8cc6-2455027bacf4" 
+              alt="Logo" 
+              className="w-full h-full object-contain p-2"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <h1 className="text-3xl font-bold mb-4">Admin Access</h1>
           <p className="text-gray-500 mb-10">Please sign in with your authorized Google account to access the dashboard.</p>
@@ -429,8 +434,13 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
       <aside className="w-64 bg-brand-primary text-white flex flex-col">
         <div className="p-8">
           <div className="flex items-center space-x-2 mb-10">
-            <div className="w-8 h-8 bg-brand-secondary rounded flex items-center justify-center">
-              <span className="text-brand-primary font-bold">A</span>
+            <div className="w-8 h-8 bg-brand-secondary rounded flex items-center justify-center overflow-hidden">
+              <img 
+                src="https://firebasestorage.googleapis.com/v0/b/back-up-dev.firebasestorage.app/o/media%2F1776555021724_Go-To_Round.png?alt=media&token=0be27d5d-61f3-4d5a-8cc6-2455027bacf4" 
+                alt="Logo" 
+                className="w-full h-full object-contain p-0.5"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <span className="font-display font-bold text-lg tracking-tighter">ADMIN</span>
           </div>

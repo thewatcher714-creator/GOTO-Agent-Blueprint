@@ -39,8 +39,13 @@ const Navbar = ({ isAdmin, user }: { isAdmin: boolean; user: User | null }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-brand-secondary rounded-lg flex items-center justify-center">
-              <span className="text-brand-primary font-bold text-xl">A</span>
+            <div className="w-10 h-10 bg-brand-secondary rounded-lg flex items-center justify-center overflow-hidden">
+              <img 
+                src="https://firebasestorage.googleapis.com/v0/b/back-up-dev.firebasestorage.app/o/media%2F1776555021724_Go-To_Round.png?alt=media&token=0be27d5d-61f3-4d5a-8cc6-2455027bacf4" 
+                alt="Logo" 
+                className="w-full h-full object-contain p-1"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <span className="font-display text-xl font-bold tracking-tighter">THE GO-TO AGENT BLUEPRINT</span>
           </Link>
@@ -145,8 +150,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-brand-secondary rounded-lg flex items-center justify-center">
-                <span className="text-brand-primary font-bold text-xl">A</span>
+              <div className="w-10 h-10 bg-brand-secondary rounded-lg flex items-center justify-center overflow-hidden">
+                <img 
+                  src="https://firebasestorage.googleapis.com/v0/b/back-up-dev.firebasestorage.app/o/media%2F1776555021724_Go-To_Round.png?alt=media&token=0be27d5d-61f3-4d5a-8cc6-2455027bacf4" 
+                  alt="Logo" 
+                  className="w-full h-full object-contain p-1"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <span className="font-display text-2xl font-bold tracking-tighter">THE GO-TO AGENT BLUEPRINT</span>
             </Link>

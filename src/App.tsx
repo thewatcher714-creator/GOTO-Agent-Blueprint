@@ -154,7 +154,7 @@ const Footer = () => {
               Helping real estate agents become the "Go-To" authority in their market through strategic positioning, high-end media, and the Go-To Ladder framework.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-brand-primary transition-all">
+              <a href="https://www.instagram.com/walkerrealestatemedia/" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-brand-primary transition-all">
                 <Instagram size={20} />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-brand-primary transition-all">
@@ -178,15 +178,15 @@ const Footer = () => {
             <ul className="space-y-4 text-gray-400">
               <li className="flex items-center space-x-3">
                 <Mail size={18} className="text-brand-secondary" />
-                <span>hello@gotoagentblueprint.com</span>
+                <span>info@gotoagentblueprint.com</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone size={18} className="text-brand-secondary" />
-                <span>(555) 123-4567</span>
+                <span>(678) 447-2558</span>
               </li>
               <li className="flex items-center space-x-3">
                 <MapPin size={18} className="text-brand-secondary" />
-                <span>Los Angeles, CA</span>
+                <span>Lithonia, GA</span>
               </li>
             </ul>
           </div>

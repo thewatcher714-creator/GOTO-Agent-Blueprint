@@ -47,12 +47,20 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "thewatcher714@gmail.com" && request.auth.token.email_verified == true));
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          request.auth.token.email == "thewatcher714@gmail.com"
+        );
     }
 
     function isValidEmail(email) {
       return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Default deny for safety
+    match /{document=**} {
+      allow read, write: if false;
     }
 
     // Rules for each collection
@@ -115,6 +123,11 @@ service cloud.firestore {
 
     match /emailTemplates/{templateId} {
       allow read, write: if isAdmin();
+    }
+
+    match /emailLogs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
     }
   }
 }

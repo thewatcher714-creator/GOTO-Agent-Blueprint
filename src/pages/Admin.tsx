@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, User } from 'firebase/auth';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   LayoutDashboard,
   Calendar,
@@ -52,6 +52,44 @@ interface AdminProps {
   isAdmin: boolean;
   user: User | null;
 }
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: 'create' | 'update' | 'delete' | 'list' | 'get' | 'write';
+  path: string | null;
+  authInfo: {
+    userId: string;
+    email: string;
+    emailVerified: boolean;
+    isAnonymous: boolean;
+    providerInfo: { providerId: string; displayName: string; email: string; }[];
+  }
+}
+
+const handleFirestoreError = (error: any, operationType: FirestoreErrorInfo['operationType'], path: string | null) => {
+  if (error?.code === 'permission-denied') {
+    const authUser = auth.currentUser;
+    const errorInfo: FirestoreErrorInfo = {
+      error: error.message,
+      operationType,
+      path,
+      authInfo: {
+        userId: authUser?.uid || 'anonymous',
+        email: authUser?.email || 'N/A',
+        emailVerified: authUser?.emailVerified || false,
+        isAnonymous: authUser?.isAnonymous || true,
+        providerInfo: authUser?.providerData.map(p => ({
+          providerId: p.providerId,
+          displayName: p.displayName || '',
+          email: p.email || ''
+        })) || []
+      }
+    };
+    console.error('Firestore Permission Denied:', errorInfo);
+    throw new Error(JSON.stringify(errorInfo));
+  }
+  throw error;
+};
 
 const Admin = ({ isAdmin, user }: AdminProps) => {
   const [activeTab, setActiveTab] = useState<
@@ -248,16 +286,16 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
     const data = {
       ...editingItem,
       [activeTab === 'reports' ? 'htmlOutput' : 'htmlBody']: finalHtml,
-      updatedAt: new Date(),
-      createdAt: editingItem.createdAt || new Date()
+      updatedAt: serverTimestamp(),
+      createdAt: editingItem.createdAt || serverTimestamp()
     };
 
     try {
       if (editingItem.id) {
         const { id, ...rest } = data;
-        await updateDoc(doc(db, col, id), rest);
+        await updateDoc(doc(db, col, id), rest).catch(err => handleFirestoreError(err, 'update', `${col}/${id}`));
       } else {
-        await addDoc(collection(db, col), data);
+        await addDoc(collection(db, col), data).catch(err => handleFirestoreError(err, 'create', col));
       }
 
       setShowEditor(false);
@@ -265,7 +303,14 @@ const Admin = ({ isAdmin, user }: AdminProps) => {
       alert('Saved successfully.');
     } catch (error: any) {
       console.error('Save error:', error);
-      alert(`Failed to save item: ${error?.code || ''} ${error?.message || error}`);
+      let displayError = error?.message || error;
+      try {
+        const parsed = JSON.parse(error.message);
+        displayError = `Permission Denied: ${parsed.error}. Operation: ${parsed.operationType} on ${parsed.path}`;
+      } catch (e) {
+        // Not JSON, use original message
+      }
+      alert(`Failed to save item: ${displayError}`);
     }
   };
 

@@ -12,6 +12,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
+const distPath = path.join(__dirname, "dist");
 
 function initFirebaseAdmin() {
   if (admin.apps.length) return;
@@ -44,13 +45,23 @@ function initFirebaseAdmin() {
 
 initFirebaseAdmin();
 
-const distPath = path.join(__dirname, "dist");
-
 app.use(express.json());
+
+// Serve built React/Vite files from /dist.
+// Make sure Hostinger runs: npm install && npm run build
 app.use(express.static(distPath));
 
+// Health check route.
+// Test after deployment at: https://gotoagentblueprint.com/api/health
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Temporary server test route.
+// Test after deployment at: https://gotoagentblueprint.com/server-test
+// Once everything is confirmed working, you can remove this route.
+app.get("/server-test", (req, res) => {
+  res.type("text").send("Express server is live");
 });
 
 app.post("/api/send-email", async (req, res) => {
@@ -78,6 +89,7 @@ app.post("/api/send-email", async (req, res) => {
       isAdmin = true;
     } else {
       const userDoc = await admin.firestore().collection("users").doc(uid).get();
+
       if (userDoc.exists && userDoc.data()?.role === "admin") {
         isAdmin = true;
       }
@@ -109,10 +121,16 @@ app.post("/api/send-email", async (req, res) => {
     });
 
     console.log(`Email sent by ${email}: ${info.messageId}`);
-    return res.json({ success: true, messageId: info.messageId });
+
+    return res.json({
+      success: true,
+      messageId: info.messageId,
+    });
   } catch (error) {
     console.error("Auth or Email error:", error);
+
     const message = error instanceof Error ? error.message : "Unknown error";
+
     return res.status(500).json({
       error: "Failed to send email",
       details: message,
@@ -120,9 +138,17 @@ app.post("/api/send-email", async (req, res) => {
   }
 });
 
-// Fallback for SPA routing - serves index.html for all non-API paths
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
+// API 404 handler.
+// Keeps bad API routes from falling through to the React app.
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "API route not found" });
+});
+
+// SPA fallback.
+// Every non-API route serves the React/Vite app.
+// This fixes direct visits/refreshes on routes like:
+// /framework, /services, /booking, /resources
+app.use((req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 

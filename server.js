@@ -47,19 +47,32 @@ initFirebaseAdmin();
 
 app.use(express.json());
 
-// Serve built React/Vite files from /dist.
-// Make sure Hostinger runs: npm install && npm run build
-app.use(express.static(distPath));
+// Serve robots.txt before static files and before the SPA fallback.
+// This prevents the React app from intercepting /robots.txt.
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.sendFile(path.join(distPath, "robots.txt"));
+});
+
+// Serve sitemap.xml before static files and before the SPA fallback.
+// This prevents the React app from intercepting /sitemap.xml.
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml");
+  res.sendFile(path.join(distPath, "sitemap.xml"));
+});
 
 // Health check route.
 // Test after deployment at: https://gotoagentblueprint.com/api/health
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Temporary server test route.
 // Test after deployment at: https://gotoagentblueprint.com/server-test
-// Once everything is confirmed working, you can remove this route.
+// You can remove this once everything is confirmed working.
 app.get("/server-test", (req, res) => {
   res.type("text").send("Express server is live");
 });
@@ -69,11 +82,15 @@ app.post("/api/send-email", async (req, res) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized: Missing token" });
+    return res.status(401).json({
+      error: "Unauthorized: Missing token",
+    });
   }
 
   if (!admin.apps.length) {
-    return res.status(500).json({ error: "Server auth not configured" });
+    return res.status(500).json({
+      error: "Server auth not configured",
+    });
   }
 
   const idToken = authHeader.split("Bearer ")[1];
@@ -96,11 +113,15 @@ app.post("/api/send-email", async (req, res) => {
     }
 
     if (!isAdmin) {
-      return res.status(403).json({ error: "Forbidden: Admin access required" });
+      return res.status(403).json({
+        error: "Forbidden: Admin access required",
+      });
     }
 
     if (!to || !subject || !html) {
-      return res.status(400).json({ error: "Missing required fields" });
+      return res.status(400).json({
+        error: "Missing required fields",
+      });
     }
 
     const transporter = nodemailer.createTransport({
@@ -138,14 +159,20 @@ app.post("/api/send-email", async (req, res) => {
   }
 });
 
+// Serve built React/Vite files from /dist.
+// This comes AFTER robots, sitemap, and API routes.
+app.use(express.static(distPath));
+
 // API 404 handler.
-// Keeps bad API routes from falling through to the React app.
+// Keeps bad API routes from falling through to the React frontend.
 app.use("/api", (req, res) => {
-  res.status(404).json({ error: "API route not found" });
+  res.status(404).json({
+    error: "API route not found",
+  });
 });
 
 // SPA fallback.
-// Every non-API route serves the React/Vite app.
+// Every non-API, non-file route serves the React/Vite app.
 // This fixes direct visits/refreshes on routes like:
 // /framework, /services, /booking, /resources
 app.use((req, res) => {

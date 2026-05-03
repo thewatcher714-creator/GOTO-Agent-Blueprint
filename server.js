@@ -47,58 +47,6 @@ initFirebaseAdmin();
 
 app.use(express.json());
 
-// Serve real robots.txt before static files and before the SPA fallback.
-app.get("/robots.txt", (req, res) => {
-  res.type("text/plain");
-  res.send(`User-agent: *
-Allow: /
-Disallow: /admin
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-Sitemap: https://gotoagentblueprint.com/sitemap.xml
-`);
-});
-
-// Serve real sitemap.xml before the SPA fallback.
-app.get("/sitemap.xml", (req, res) => {
-  const baseUrl = "https://gotoagentblueprint.com";
-
-  const pages = [
-    { path: "/", priority: "1.0", changefreq: "weekly" },
-    { path: "/framework", priority: "0.9", changefreq: "monthly" },
-    { path: "/services", priority: "0.9", changefreq: "monthly" },
-    { path: "/booking", priority: "0.8", changefreq: "monthly" },
-    { path: "/resources", priority: "0.8", changefreq: "monthly" },
-    { path: "/contact", priority: "0.7", changefreq: "monthly" },
-    { path: "/privacy", priority: "0.3", changefreq: "yearly" },
-    { path: "/terms", priority: "0.3", changefreq: "yearly" },
-  ];
-
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages
-  .map(
-    (page) => `  <url>
-    <loc>${baseUrl}${page.path}</loc>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`
-  )
-  .join("\n")}
-</urlset>`;
-
-  res.type("application/xml");
-  res.send(sitemap);
-});
-
 // Serve built React/Vite files from /dist.
 // Make sure Hostinger runs: npm install && npm run build
 app.use(express.static(distPath));

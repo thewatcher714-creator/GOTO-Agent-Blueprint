@@ -49,6 +49,10 @@ const distPath = path.join(__dirname, "dist");
 app.use(express.json());
 app.use(express.static(distPath));
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 app.post("/api/send-email", async (req, res) => {
   const { to, subject, html } = req.body;
   const authHeader = req.headers.authorization;
@@ -117,7 +121,8 @@ app.post("/api/send-email", async (req, res) => {
 });
 
 // Fallback for SPA routing - serves index.html for all non-API paths
-app.get(/^\/(?!api).*/, (req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
   res.sendFile(path.join(distPath, "index.html"));
 });
 

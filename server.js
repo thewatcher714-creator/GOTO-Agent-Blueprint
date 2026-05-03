@@ -12,7 +12,6 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
-const distPath = path.join(__dirname, "dist");
 
 function initFirebaseAdmin() {
   if (admin.apps.length) return;
@@ -45,24 +44,23 @@ function initFirebaseAdmin() {
 
 initFirebaseAdmin();
 
+const distPath = path.join(__dirname, "dist");
+
 app.use(express.json());
 
-// Serve robots.txt before static files and before the SPA fallback.
-// This prevents the React app from intercepting /robots.txt.
+// GET /robots.txt
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");
   res.sendFile(path.join(distPath, "robots.txt"));
 });
 
-// Serve sitemap.xml before static files and before the SPA fallback.
-// This prevents the React app from intercepting /sitemap.xml.
+// GET /sitemap.xml
 app.get("/sitemap.xml", (req, res) => {
   res.type("application/xml");
   res.sendFile(path.join(distPath, "sitemap.xml"));
 });
 
-// Health check route.
-// Test after deployment at: https://gotoagentblueprint.com/api/health
+// GET /api/health
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
@@ -70,9 +68,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Temporary server test route.
-// Test after deployment at: https://gotoagentblueprint.com/server-test
-// You can remove this once everything is confirmed working.
+// GET /server-test
 app.get("/server-test", (req, res) => {
   res.type("text").send("Express server is live");
 });

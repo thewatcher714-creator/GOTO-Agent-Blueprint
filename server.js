@@ -44,8 +44,10 @@ function initFirebaseAdmin() {
 
 initFirebaseAdmin();
 
+const distPath = path.join(__dirname, "dist");
+
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "dist")));
+app.use(express.static(distPath));
 
 app.post("/api/send-email", async (req, res) => {
   const { to, subject, html } = req.body;
@@ -114,8 +116,9 @@ app.post("/api/send-email", async (req, res) => {
   }
 });
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+// Fallback for SPA routing - serves index.html for all non-API paths
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 app.listen(port, "0.0.0.0", () => {

@@ -51,13 +51,43 @@ app.use(express.json());
 // GET /robots.txt
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");
-  res.sendFile(path.join(distPath, "robots.txt"));
+  res.sendFile(path.join(distPath, "robots.txt"), (error) => {
+    if (error) {
+      console.error("robots.txt not found:", error);
+      res.status(404).send("robots.txt not found");
+    }
+  });
 });
 
 // GET /sitemap.xml
+// Generated directly by Express to avoid file-path/runtime serving issues.
 app.get("/sitemap.xml", (req, res) => {
+  const baseUrl = "https://gotoagentblueprint.com";
+
+  const pages = [
+    { path: "/", priority: "1.0", changefreq: "weekly" },
+    { path: "/framework", priority: "0.9", changefreq: "monthly" },
+    { path: "/services", priority: "0.9", changefreq: "monthly" },
+    { path: "/booking", priority: "0.8", changefreq: "monthly" },
+    { path: "/resources", priority: "0.8", changefreq: "monthly" },
+    { path: "/contact", priority: "0.7", changefreq: "monthly" },
+  ];
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages
+  .map(
+    (page) => `  <url>
+    <loc>${baseUrl}${page.path}</loc>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`
+  )
+  .join("\n")}
+</urlset>`;
+
   res.type("application/xml");
-  res.sendFile(path.join(distPath, "sitemap.xml"));
+  res.send(sitemap);
 });
 
 // GET /api/health
